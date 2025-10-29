@@ -1,7 +1,7 @@
 import discord
 from discord.ext import commands
 import json
-from Rasp_System_Info import get_system_info
+from rasp_system_info import get_system_info
 import subprocess
 import asyncio
 
@@ -161,4 +161,5 @@ async def help(ctx):
     await ctx.send(embed=embed)
 
 bot.run(config["token"])
+
 
