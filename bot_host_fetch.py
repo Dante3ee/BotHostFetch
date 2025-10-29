@@ -12,10 +12,10 @@ with open("config.json", "r", encoding="utf-8") as f:
 intents = discord.Intents.default()
 intents.message_content = True
 
-command_Prefix = "host."  #you could change it if you want (the shown prefix in the commands will also be changed)
+COMMAND_PREFIX = "host."  #you could change it if you want (the shown prefix in the commands will also be changed)
 bot = commands.Bot(command_prefix=command_Prefix, intents=intents,  help_command=None)
 
-embed_color = discord.Color.blurple() #you can change the embed color here (the color on the left of the embed)
+EMBED_COLOR = discord.Color.blurple() #you can change the embed color here (the color on the left of the embed)
 ownership_protection = True           #default is True, can be changed with the command  
 
 #for the interactive embed
@@ -36,7 +36,7 @@ class SysInfoView(discord.ui.View):
         info = get_system_info()
         embed = discord.Embed(
             title="System infos - Raspberry Pi",
-            color=embed_color
+            color=EMBED_COLOR
         )
 
         for k, v in info.items():
@@ -95,7 +95,7 @@ async def fetch(ctx):
 
     embed = discord.Embed(
         title="Full Fetch - Raspberry Pi",
-        color=embed_color)
+        color=EMBED_COLOR)
 
     for k, v in info.items():
         embed.add_field(name=k, value=str(v), inline=False)
@@ -114,7 +114,7 @@ async def network(ctx):
     info = get_system_info()
     subset = {k: info[k] for k in ["Hostname", "Local IP", "Public IP"]}
 
-    embed = discord.Embed(title="Network Information", color=embed_color)
+    embed = discord.Embed(title="Network Information", color=EMBED_COLOR)
     for k, v in subset.items():
         embed.add_field(name=k, value=str(v), inline=False)
     await ctx.send(embed=embed)
@@ -128,7 +128,7 @@ async def status(ctx):
     info = get_system_info()
     subset = {k: info[k] for k in ["CPU Usage", "CPU Freq", "Temperature", "Power/Throttling", "RAM", "Disk", "Uptime"]}
 
-    embed = discord.Embed(title="System Information", color=embed_color)
+    embed = discord.Embed(title="System Information", color=EMBED_COLOR)
     for k, v in subset.items():
         embed.add_field(name=k, value=str(v), inline=False)
     await ctx.send(embed=embed)
@@ -152,12 +152,13 @@ async def help(ctx):
         color=discord.Color.blurple()
     )
     embed.add_field(name="YOU MUST OWN THE BOT TO USE THESE COMMANDS", value="", inline=False)
-    embed.add_field(name=f"{command_Prefix}fetch", value="Get full system information with interactive buttons.", inline=False)
-    embed.add_field(name=f"{command_Prefix}network", value="Get network-related information.", inline=False)
-    embed.add_field(name=f"{command_Prefix}status", value="Get system status information.", inline=False)
-    embed.add_field(name=f"{command_Prefix}help", value="Display this help message.", inline=False)
-    embed.add_field(name=f"{command_Prefix}toggle_protection", value="Change the ownership protection.", inline=False)
+    embed.add_field(name=f"{COMMAND_PREFIX}fetch", value="Get full system information with interactive buttons.", inline=False)
+    embed.add_field(name=f"{COMMAND_PREFIX}network", value="Get network-related information.", inline=False)
+    embed.add_field(name=f"{COMMAND_PREFIX}status", value="Get system status information.", inline=False)
+    embed.add_field(name=f"{COMMAND_PREFIX}help", value="Display this help message.", inline=False)
+    embed.add_field(name=f"{COMMAND_PREFIX}toggle_protection", value="Change the ownership protection.", inline=False)
     embed.set_footer(text="BotHostFetch - Managing your bot hosting Raspberry Pi")
     await ctx.send(embed=embed)
 
 bot.run(config["token"])
+
