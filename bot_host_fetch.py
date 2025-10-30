@@ -114,7 +114,7 @@ async def secfetch(ctx):
         return await ctx.send("You don't own this bot.")
     
     info = get_system_info()
-    subset = {k: info[k] for k in ["Model","OS","Architecture","CPU Usage","CPU Freq","Temperature","Power/Throttling","RAM","Disk","Uptime","Interfaces"]}                             
+    subset = {k: info[k] for k in ["Model","OS","Architecture","CPU Usage","CPU Freq","Temperature","Power/Throttling","RAM","Disk","Uptime"]}                             
     embed = discord.Embed(title="Secure Fetch", color=EMBED_COLOR)
     subset["Interfaces"]=len(info["Interfaces"])
     for k, v in subset.items():
