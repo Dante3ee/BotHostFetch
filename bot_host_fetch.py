@@ -13,7 +13,7 @@ intents = discord.Intents.default()
 intents.message_content = True
 
 COMMAND_PREFIX = "host."  #you could change it if you want (the shown prefix in the commands will also be changed)
-bot = commands.Bot(command_prefix=command_Prefix, intents=intents,  help_command=None)
+bot = commands.Bot(command_prefix=COMMAND_PREFIX, intents=intents,  help_command=None)
 
 EMBED_COLOR = discord.Color.blurple() #you can change the embed color here (the color on the left of the embed)
 ownership_protection = True           #default is True, can be changed with the command  
@@ -84,7 +84,7 @@ class SysInfoView(discord.ui.View):
 @bot.event
 async def on_ready():
     print(f"UP {bot.user} ({bot.user.id})")
-    await bot.change_presence(activity=discord.Game(f"BotHostFetch! {command_Prefix}help"))
+    await bot.change_presence(activity=discord.Game(f"BotHostFetch! {COMMAND_PREFIX}help"))
 
 
 @bot.command()
@@ -161,5 +161,6 @@ async def help(ctx):
     await ctx.send(embed=embed)
 
 bot.run(config["token"])
+
 
 
