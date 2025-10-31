@@ -48,7 +48,9 @@ sudo systemctl start bothostfetch
 To allow safe commands (update, reboot) without a password, add a limited sudoers entry (replace <user> with your system username):
 ```bash
 sudo visudo
-# add the following line:
+```
+add the following line:
+```bash
 <user> ALL=(ALL) NOPASSWD: /usr/bin/apt, /usr/bin/apt-get, /sbin/reboot
 ```
 Do not use NOPASSWD: ALL — it grants full root access.
