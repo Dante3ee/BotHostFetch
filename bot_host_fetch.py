@@ -1,13 +1,26 @@
 import discord
 from discord.ext import commands
 import json
-from rasp_system_info import get_system_info
+from rasp_system_info import get_system_info, get_network
 import subprocess
 import asyncio
+from pathlib import Path
+import sys
 
-#config 
-with open("config.json", "r", encoding="utf-8") as f:
-    config = json.load(f)
+# config loading json
+BASE_DIR = Path(__file__).parent
+CONFIG_PATH = BASE_DIR / "config.json"
+
+try:
+    with open(CONFIG_PATH, "r", encoding="utf-8") as f:
+        config = json.load(f)
+except FileNotFoundError:
+    print(f"Error: configuration file not found at '{CONFIG_PATH}'")
+    sys.exit(2)
+except json.JSONDecodeError as e:
+    print(f"Error: invalid JSON in configuration file '{CONFIG_PATH}': {e}")
+    sys.exit(3)
+
 
 intents = discord.Intents.default()
 intents.message_content = True
@@ -17,6 +30,7 @@ bot = commands.Bot(command_prefix=COMMAND_PREFIX, intents=intents,  help_command
 
 EMBED_COLOR = discord.Color.blurple() #you can change the embed color here (the color on the left of the embed)
 ownership_protection = True           #default is True, can be changed with the command  
+IP_hider = False                      #default is false, can be change with the command | Hide public ip 
 
 #for the interactive embed
 class SysInfoView(discord.ui.View):
@@ -92,7 +106,8 @@ async def fetch(ctx):
     if ctx.author.id != config["owner_id"] and ownership_protection==True:
         return await ctx.send("You don't own this bot.")
     info = get_system_info()
-
+    if IP_hider == True:
+        info["Public IP"]='Hidden by bot owner'
     embed = discord.Embed(
         title="Full Fetch - Raspberry Pi",
         color=EMBED_COLOR)
@@ -107,13 +122,30 @@ async def fetch(ctx):
 
 
 @bot.command()
+async def secfetch(ctx):
+    if ctx.author.id != config["owner_id"] and ownership_protection==True:
+        return await ctx.send("You don't own this bot.")
+
+    info = get_system_info()
+    subset = {k: info[k] for k in ["Model","OS","Architecture","CPU Usage","CPU Freq","Temperature","Power/Throttling","RAM","Disk","Uptime"]}
+    net = get_network()                     #count the interfaces (instead of listing them)
+    num_interfaces = len(net["interfaces"]) 
+    subset["Interfaces"] = num_interfaces
+    embed = discord.Embed(title="Secure Fetch", color=EMBED_COLOR)
+    for k, v in subset.items():
+        embed.add_field(name=k, value=str(v), inline=False)
+    await ctx.send(embed=embed)
+
+
+@bot.command()
 async def network(ctx):
     if ctx.author.id != config["owner_id"] and ownership_protection==True:
         return await ctx.send("You don't own this bot.")
     
     info = get_system_info()
     subset = {k: info[k] for k in ["Hostname", "Local IP", "Public IP"]}
-
+    if IP_hider == True:
+        subset[2]='Hidden by bot owner'                               
     embed = discord.Embed(title="Network Information", color=EMBED_COLOR)
     for k, v in subset.items():
         embed.add_field(name=k, value=str(v), inline=False)
@@ -137,11 +169,21 @@ async def status(ctx):
 @bot.command()
 async def toggle_protection(ctx):
     if ctx.author.id != config["owner_id"]:
-        return await ctx.send("You don't own this bot.")
+        return await ctx.send("Owner only command, regardless of ownership protection.")
     global ownership_protection
     ownership_protection = not ownership_protection
     status = "enabled" if ownership_protection else "disabled"
     await ctx.send(f"Ownership protection is now {status}.")
+
+
+@bot.command()
+async def hide_IP(ctx):
+    if ctx.author.id != config["owner_id"]:
+        return await ctx.send("Owner only command, regardless of ownership protection.")
+    global IP_hider
+    IP_hider = not IP_hider
+    status = "hidden" if IP_hider else "shown"
+    await ctx.send(f"The bot public IP is now {status}.")
 
 
 @bot.command()
@@ -153,11 +195,14 @@ async def help(ctx):
     )
     embed.add_field(name="YOU MUST OWN THE BOT TO USE THESE COMMANDS", value="", inline=False)
     embed.add_field(name=f"{COMMAND_PREFIX}fetch", value="Get full system information with interactive buttons.", inline=False)
+    embed.add_field(name=f"{COMMAND_PREFIX}secfetch", value="Secure Fetch without buttons and sensitive data", inline=False)
     embed.add_field(name=f"{COMMAND_PREFIX}network", value="Get network-related information.", inline=False)
     embed.add_field(name=f"{COMMAND_PREFIX}status", value="Get system status information.", inline=False)
     embed.add_field(name=f"{COMMAND_PREFIX}help", value="Display this help message.", inline=False)
-    embed.add_field(name=f"{COMMAND_PREFIX}toggle_protection", value="Change the ownership protection.", inline=False)
+    embed.add_field(name=f"{COMMAND_PREFIX}toggle_protection", value=f"Toggle the ownership protection (now is {ownership_protection}).", inline=False)
+    embed.add_field(name=f"{COMMAND_PREFIX}toggle_IP_hider", value=f"Toggle public Ip display (now is {IP_hider} ).", inline=False)
     embed.set_footer(text="BotHostFetch - Managing your bot hosting Raspberry Pi")
+
     await ctx.send(embed=embed)
 
 bot.run(config["token"])
