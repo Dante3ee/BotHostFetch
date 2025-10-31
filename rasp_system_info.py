@@ -80,7 +80,7 @@ def get_system_info():
         "Uptime": uptime,
         "Hostname": socket.gethostname(),
         "Local IP": net["ip_local"],
-        "Public IP": net["ip_public"],
+        "Public IP": net['ip_public'],
         "Interfaces": ", ".join(net["interfaces"]),
     }
     return info
@@ -95,3 +95,4 @@ def print_sysinfo():
 
 if __name__ == "__main__":
     print_sysinfo()
+
