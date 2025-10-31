@@ -1,13 +1,26 @@
 import discord
 from discord.ext import commands
 import json
-from rasp_system_info import get_system_info
+from rasp_system_info import get_system_info, get_network
 import subprocess
 import asyncio
+from pathlib import Path
+import sys
 
-#config 
-with open("config.json", "r", encoding="utf-8") as f:
-    config = json.load(f)
+# config loading json
+BASE_DIR = Path(__file__).parent
+CONFIG_PATH = BASE_DIR / "config.json"
+
+try:
+    with open(CONFIG_PATH, "r", encoding="utf-8") as f:
+        config = json.load(f)
+except FileNotFoundError:
+    print(f"Error: configuration file not found at '{CONFIG_PATH}'")
+    sys.exit(2)
+except json.JSONDecodeError as e:
+    print(f"Error: invalid JSON in configuration file '{CONFIG_PATH}': {e}")
+    sys.exit(3)
+
 
 intents = discord.Intents.default()
 intents.message_content = True
@@ -112,11 +125,13 @@ async def fetch(ctx):
 async def secfetch(ctx):
     if ctx.author.id != config["owner_id"] and ownership_protection==True:
         return await ctx.send("You don't own this bot.")
-    
+
     info = get_system_info()
-    subset = {k: info[k] for k in ["Model","OS","Architecture","CPU Usage","CPU Freq","Temperature","Power/Throttling","RAM","Disk","Uptime"]}                             
+    subset = {k: info[k] for k in ["Model","OS","Architecture","CPU Usage","CPU Freq","Temperature","Power/Throttling","RAM","Disk","Uptime"]}
+    net = get_network()                     #count the interfaces (instead of listing them)
+    num_interfaces = len(net["interfaces"]) 
+    subset["Interfaces"] = num_interfaces
     embed = discord.Embed(title="Secure Fetch", color=EMBED_COLOR)
-    subset["Interfaces"]=len(info["Interfaces"])
     for k, v in subset.items():
         embed.add_field(name=k, value=str(v), inline=False)
     await ctx.send(embed=embed)
